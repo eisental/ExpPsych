@@ -1,2 +1,2 @@
 # הניסוי של גיל ליאור וטל
-## [BART](BART/index.html)
+## [BART](bart-test/index.html)
