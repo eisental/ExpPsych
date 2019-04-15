@@ -17,7 +17,33 @@
   <!-- additional scripts to run the demo on this page -->
   <script type="text/javascript">
     //<![CDATA[
-    var SUBJID;
+    
+    var readyToStart = false;
+
+    // Select the experiment group (mt=1/non-mt=0) 
+    var experimentGroup;
+    var urlGroupColumn = "https://sheets.googleapis.com/v4/spreadsheets/1dcMtqcaZWEMNIGioV6910tRyE0t27jvku91aC_S9EMg/values/Sheet1!A2:A1000?key=AIzaSyDRyViKp4jP-4DiVUeLHsE8O8bciMNtTCs"
+    
+    $.getJSON(urlGroupColumn, function(data) {
+      console.log(data);
+      var count0 = 0;
+      var count1 = 0;
+      for (v in data.values) {
+        if (data.values[v]=="0") count0++;
+        else if (data.values[v]=="1") count1++;
+      }
+
+      experimentGroup = count0 > count1 ? 1 : 0;
+      console.log(count0 + " 0s, " + count1 + " 1s. Setting group to " + experimentGroup);
+      readyToStart = true;
+      startExperiment();
+    });
+
+    function startExperiment() {
+      if (readyToStart)
+        $("#openness-div").show();
+    }
+
     var bartData;
 
     // Helper for enterKey in inputs
@@ -36,10 +62,11 @@
     $(document).ready(function () {
       
       // Hide all relevant divs
+      if (!readyToStart) $("#openness-div").hide();
       $("#ms-div").hide();
       $("#bart-div").hide();
       $("#done-div").hide();
-      
+
       // Setup BART
       var bOpts = {
         min_pump: 2, 
@@ -51,9 +78,9 @@
                 // create a BART with default values using 10 balloons
                 $("#bart").bart(
                         {b: [
-                                {b: 1, o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
+                                {b: 0, o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
                                 {b: 0, o: $.extend({color: 'red', popprob: 128 }, bOpts)},
-                                {b: 0, o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
+                                {b: 1, o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
                             ],
                             s: {
 /*                                txt_cashin: 'Coletar $$$',
@@ -75,8 +102,8 @@
                                     this.balloon = null;
                                     console.log(this);
                                     console.log(JSON.stringify(this));
-                                    data = {bart: JSON.stringify(this), subjid: SUBJID};
-                                    endBart(data);
+                                    //data = {bart: JSON.stringify(this), subjid: SUBJID};
+                                    endBart(this);
                                     //$.post('save.php', data);
                                 }
                             }
@@ -93,19 +120,19 @@
                     $("#bart-div").show();
                 });
 
-                function endBart(data){
+                function endBart(bartData){
                   $("#bart-div").hide("slow", "swing");
                   $("#done-div").show();
-                  bartData = JSON.parse(data.bart);
-                  saveData(JSON.parse(data.bart));
+                  saveToGoogleSheets(bartData);
                 }                
             });
 
           // Send data to Google Spreadsheets:
 
           var url = 'https://script.google.com/macros/s/AKfycbyC1KeNpB8MkE98at9wy5zr6jw-z1LZSn21v9n1I1hmWHUo7REs/exec';
-          function saveData(bartData) {
+          function saveToGoogleSheets(bartData) {
             var data = {
+              "group": experimentGroup,
               "q1": $("input[name='q1']:checked").val(),
               "q2": $("input[name='q2']:checked").val(),
               "death": $("#death").val(),
@@ -125,7 +152,9 @@
           }
 
             //]]>
-        </script>
+
+      startExperiment();
+  </script>
 
     </head>
     <body>
