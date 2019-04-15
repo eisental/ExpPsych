@@ -22,9 +22,9 @@
 
     // Select the experiment group (mt=1/non-mt=0) 
     var experimentGroup;
-    var urlGroupColumn = "https://sheets.googleapis.com/v4/spreadsheets/1dcMtqcaZWEMNIGioV6910tRyE0t27jvku91aC_S9EMg/values/Sheet1!A2:A1000?key=AIzaSyDRyViKp4jP-4DiVUeLHsE8O8bciMNtTCs"
+    var urlExperimentGroupColumn = "https://sheets.googleapis.com/v4/spreadsheets/1dcMtqcaZWEMNIGioV6910tRyE0t27jvku91aC_S9EMg/values/Sheet1!A2:A1000?key=AIzaSyDRyViKp4jP-4DiVUeLHsE8O8bciMNtTCs"
     
-    $.getJSON(urlGroupColumn, function(data) {
+    $.getJSON(urlExperimentGroupColumn, function(data) {
       var count0 = 0;
       var count1 = 0;
       for (v in data.values) {
@@ -39,8 +39,9 @@
     });
 
     function startExperiment() {
-      if (readyToStart)
-        $("#openness-div").show();
+      if (!readyToStart) return;
+
+      $("#openness-div").show();
     }
 
     var bartData;
@@ -71,91 +72,88 @@
         min_pump: 2, 
         earnings: 0.25,
         onstart: function(){ this.start_time= $.now(); },
-                    onexplode: function(){ this.end_time = $.now(); },
-                    oncashin: function(){ this.end_time = $.now(); }
-                };
-                // create a BART with default values using 10 balloons
-                $("#bart").bart(
-                        {b: [
-                                {b: 0, o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
-                                {b: 0, o: $.extend({color: 'red', popprob: 128 }, bOpts)},
-                                {b: 1, o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
-                            ],
-                            s: {
-/*                                txt_cashin: 'Coletar $$$',
-                                txt_inflate: 'Inflar',
-                                txt_next: 'Próximo',
-                                txt_balloon_number: 'Balões: ',
-                                txt_number_of_pumps: 'Número de assopros: ',
-                                txt_current_earned: 'Ganhos: ',
-                                txt_total_earned: 'Total acumulado: R$ ',
-                                txt_prob_explosion: 'Probabilidade de explodir: ',
-                                txt_pumps_used: 'Assopros utilizados: ',*/
-                                showpopprob: false,
-                                sounds: true,
-                                onload: function () {
-                                    this.start_time = $.now();
-                                },
-                                onend: function () {
-                                    this.end_time = $.now();
-                                    this.balloon = null;
-                                    console.log(this);
-                                    console.log(JSON.stringify(this));
-                                    //data = {bart: JSON.stringify(this), subjid: SUBJID};
-                                    endBart(this);
-                                    //$.post('save.php', data);
-                                }
-                            }
-                        }
-                );
+        onexplode: function(){ this.end_time = $.now(); },
+        oncashin: function(){ this.end_time = $.now(); }
+      };
 
-                $("#cont1").click(function(){
-                    $("#openness-div").hide("slow", "swing");
-                    $("#ms-div").show();
-                });
+      // create a BART
+      $("#bart").bart(
+        {b: [
+          {b: 0, o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
+          {b: 0, o: $.extend({color: 'red', popprob: 128 }, bOpts)},
+          {b: 1, o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
+        ],
+         s: {
+            txt_cashin: 'קח את הכסף',
+            txt_inflate: 'נפח',
+            txt_next: 'הבא:',
+            txt_balloon_number: 'בלון: ',
+            txt_number_of_pumps: 'ניפוחים: ',
+            txt_current_earned: 'שווי הבלון: ₪',
+            txt_total_earned: 'סה"כ: ₪',
+            txt_prob_explosion: 'סיכוי לפיצוץ: ',
+            txt_pumps_used: 'pumps_used: ',
+           showpopprob: false,
+           sounds: true,
+           onload: function () {
+             this.start_time = $.now();
+           },
+           onend: function () {
+             this.end_time = $.now();
+             this.balloon = null;
+             console.log(this);
+             endBart(this);
+           }
+         }
+        }
+      );
 
-                $("#cont2").click(function(){
-                    $("#ms-div").hide("slow", "swing");
-                    $("#bart-div").show();
-                });
+      $("#cont1").click(function(){
+        $("#openness-div").hide("slow", "swing");
+        $("#ms-div").show();
+      });
 
-                function endBart(bartData){
-                  $("#bart-div").hide("slow", "swing");
-                  $("#done-div").show();
-                  saveToGoogleSheets(bartData);
-                }                
-            });
+      $("#cont2").click(function(){
+        $("#ms-div").hide("slow", "swing");
+        $("#bart-div").show();
+      });
 
-          // Send data to Google Spreadsheets:
+      function endBart(bartData){
+        $("#bart-div").hide("slow", "swing");
+        $("#done-div").show();
+        saveToGoogleSheets(bartData);
+      }                
+    });
 
-          var url = 'https://script.google.com/macros/s/AKfycbyC1KeNpB8MkE98at9wy5zr6jw-z1LZSn21v9n1I1hmWHUo7REs/exec';
-          function saveToGoogleSheets(bartData) {
-            var data = {
-              "group": experimentGroup,
-              "q1": $("input[name='q1']:checked").val(),
-              "q2": $("input[name='q2']:checked").val(),
-              "death": $("#death").val(),
-              "bart": bartData.earned
-            };
-            console.log(data);
-            console.log("saving...");
-            $.ajax({
-              url: url,
-              method: "GET",
-              dataType: "json",
-              data: data,
-              success: function() {
-                console.log("saved data to google spreadsheets");
-              }
-            });
-          }
+    // Send data to Google Spreadsheets:
 
-            //]]>
+    var url = 'https://script.google.com/macros/s/AKfycbyC1KeNpB8MkE98at9wy5zr6jw-z1LZSn21v9n1I1hmWHUo7REs/exec';
+    function saveToGoogleSheets(bartData) {
+      var data = {
+        "group": experimentGroup,
+        "q1": $("input[name='q1']:checked").val(),
+        "q2": $("input[name='q2']:checked").val(),
+        "death": $("#death").val(),
+        "bart": bartData.earned
+      };
+      console.log(data);
+      console.log("saving...");
+      $.ajax({
+        url: url,
+        method: "GET",
+        dataType: "json",
+        data: data,
+        success: function() {
+          console.log("saved data to google spreadsheets");
+        }
+      });
+    }
 
-      startExperiment();
+    //]]>
+
+    startExperiment();    
   </script>
-
-    </head>
+  </head>
     <body>
         <div style="width: 600px; margin:auto;">            
             <h1 style="text-align: center;">ניסוי</h1>
