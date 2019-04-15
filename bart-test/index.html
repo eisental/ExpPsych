@@ -25,7 +25,6 @@
     var urlGroupColumn = "https://sheets.googleapis.com/v4/spreadsheets/1dcMtqcaZWEMNIGioV6910tRyE0t27jvku91aC_S9EMg/values/Sheet1!A2:A1000?key=AIzaSyDRyViKp4jP-4DiVUeLHsE8O8bciMNtTCs"
     
     $.getJSON(urlGroupColumn, function(data) {
-      console.log(data);
       var count0 = 0;
       var count1 = 0;
       for (v in data.values) {
