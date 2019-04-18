@@ -66,6 +66,7 @@
       $("#ms-div").hide();
       $("#bart-div").hide();
       $("#done-div").hide();
+      $("#after-questions").hide();
 
       // Setup BART
       var bOpts = {
@@ -109,8 +110,16 @@
       );
 
       $("#cont1").click(function(){
-        $("#openness-div").hide("slow", "swing");
-        $("#ms-div").show();
+        // Validate the input
+        var valid = true;
+        valid = $("input[name^='q']:checked").length == 9;
+
+        if (valid){
+            $("#openness-div").hide("slow", "swing");
+            $("#ms-div").show();
+        } else {
+            alert("אנא מלא את כל המסיחים")
+        }
       });
 
       $("#cont2").click(function(){
@@ -120,9 +129,19 @@
 
       function endBart(bartData){
         $("#bart-div").hide("slow", "swing");
-        $("#done-div").show();
-        saveToGoogleSheets(bartData);
-      }                
+        $("#after-questions").show();
+      } 
+      $("#cont3").click(function(){
+        var valid = true;
+        if (valid){
+            $("#after-questions").hide("slow", "swing");
+            $("#done-div").show();
+            saveToGoogleSheets(bartData);
+        } else {
+            alert("אנא מלא/י את כל השאלות")
+        }
+           
+      });            
     });
 
     // Send data to Google Spreadsheets:
@@ -133,6 +152,13 @@
         "group": experimentGroup,
         "q1": $("input[name='q1']:checked").val(),
         "q2": $("input[name='q2']:checked").val(),
+        "q3": $("input[name='q3']:checked").val(),
+        "q4": $("input[name='q4']:checked").val(),
+        "q5": $("input[name='q5']:checked").val(),
+        "q6": $("input[name='q6']:checked").val(),
+        "q7": $("input[name='q7']:checked").val(),
+        "q8": $("input[name='q8']:checked").val(),
+        "q9": $("input[name='q9']:checked").val(),
         "death": $("#death").val(),
         "bart": bartData.earned
       };
@@ -163,30 +189,103 @@
         <div class="container">
             <form>
             <div id="openness-div">
-                <div class="row"><h2>עד כמה אתה ליאור?</h2></div>
+                <div class="row"><h2>אני רואה עצמי כאדם מקורי הנוטה להעלות רעיונות חדשים</h2></div>
 
                 <div class="row">
-                    <div class="col-md-2">&nbsp;</div>
+                    <div class="col-md-4">&nbsp;</div>
                     <div class="col-md-1"><input type="radio" name="q1" value="1"> 1 </div>
                     <div class="col-md-1"><input type="radio" name="q1" value="2"> 2 </div>
                     <div class="col-md-1"><input type="radio" name="q1" value="3"> 3 </div>
                     <div class="col-md-1"><input type="radio" name="q1" value="4"> 4 </div>
                     <div class="col-md-1"><input type="radio" name="q1" value="5"> 5 </div>
-                    <div class="col-md-1"><input type="radio" name="q1" value="6"> 6 </div>
-                    <div class="col-md-1"><input type="radio" name="q1" value="7"> 7 </div>
                 </div>
 
-                <div class="row"><h2>האם תמיד ידעת שאתה רוצה להיות ליאור?</h2></div>
+                <div class="row"><h2>אני רואה עצמי כסקרן/נית לגבי דברים רבים</h2></div>
 
                 <div class="row">
-                    <div class="col-md-2">&nbsp;</div>
+                    <div class="col-md-4">&nbsp;</div>
                     <div class="col-md-1"><input type="radio" name="q2" value="1"> 1 </div>
                     <div class="col-md-1"><input type="radio" name="q2" value="2"> 2 </div>
                     <div class="col-md-1"><input type="radio" name="q2" value="3"> 3 </div>
                     <div class="col-md-1"><input type="radio" name="q2" value="4"> 4 </div>
                     <div class="col-md-1"><input type="radio" name="q2" value="5"> 5 </div>
-                    <div class="col-md-1"><input type="radio" name="q2" value="6"> 6 </div>
-                    <div class="col-md-1"><input type="radio" name="q2" value="7"> 7 </div>
+                </div>
+
+                <div class="row"><h2>אני רואה עצמי כאדם חכם, שנון ומעמיק</h2></div>
+
+                <div class="row">
+                    <div class="col-md-4">&nbsp;</div>
+                    <div class="col-md-1"><input type="radio" name="q3" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="q3" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="q3" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="q3" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="q3" value="5"> 5 </div>
+                </div>
+
+                <div class="row"><h2>אני רואה עצמי כבעל/ת דמיון פעיל</h2></div>
+
+                <div class="row">
+                    <div class="col-md-4">&nbsp;</div>
+                    <div class="col-md-1"><input type="radio" name="q4" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="q4" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="q4" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="q4" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="q4" value="5"> 5 </div>
+                </div>
+
+                <div class="row"><h2>אני רואה עצמי כ"ממציא"</h2></div>
+
+                <div class="row">
+                    <div class="col-md-4">&nbsp;</div>
+                    <div class="col-md-1"><input type="radio" name="q5" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="q5" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="q5" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="q5" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="q5" value="5"> 5 </div>
+                </div>
+
+                <div class="row"><h2>אני יודע להעריך התנסויות אסתטיות ואומנותיות</h2></div>
+
+                <div class="row">
+                    <div class="col-md-4">&nbsp;</div>
+                    <div class="col-md-1"><input type="radio" name="q6" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="q6" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="q6" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="q6" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="q6" value="5"> 5 </div>
+                </div>
+
+                <div class="row"><h2>אני מעדיף/ה עבודה שגרתית</h2></div>
+
+                <div class="row">
+                    <div class="col-md-4">&nbsp;</div>
+                    <div class="col-md-1"><input type="radio" name="q7" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="q7" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="q7" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="q7" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="q7" value="5"> 5 </div>
+                </div>
+
+                <div class="row"><h2>לעתים קרובות אני נהנה/נהנית לחשוב ולהשתעשע ברעיונות מופשטים</h2></div>
+
+                <div class="row">
+                    <div class="col-md-4">&nbsp;</div>
+                    <div class="col-md-1"><input type="radio" name="q8" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="q8" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="q8" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="q8" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="q8" value="5"> 5 </div>
+                </div>
+
+                <div class="row"><h2>אני מגלה עניין מועט באומנות</h2></div>
+
+                <div class="row">
+                    <div class="col-md-4">&nbsp;</div>
+                    <div class="col-md-1"><input type="radio" name="q9" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="q9" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="q9" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="q9" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="q9" value="5"> 5 </div>
                 </div>
 
                 <button type="button" id="cont1" class="btn btn-primary">המשך</button>
@@ -204,6 +303,39 @@
                 <!-- load BART here -->
                 <h3>הסברים על הבארט אם בא לנו</h3>
                 <div id="bart"></div>
+            </div>
+
+            <div id="after-questions">
+                <h4>אנא מלא את הפרטים הבאים</h4>
+                <h3>גיל: </h3> <input type="text" />
+
+                <h3>מין: </h3>
+                    <input type="radio" name="after-q1" value="male"> זכר </br>
+                    <input type="radio" name="after-q1" value="female"> נקבה </br>
+
+                <div class="row"><h2>שאלה 1</h2></div>
+
+                <div class="row">
+                    <div class="col-md-4">&nbsp;</div>
+                    <div class="col-md-1"><input type="radio" name="after-q2" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="after-q2" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="after-q2" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="after-q2" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="after-q2" value="5"> 5 </div>
+                </div>
+
+                <div class="row"><h2>שאלה 2</h2></div>
+
+                <div class="row">
+                    <div class="col-md-4">&nbsp;</div>
+                    <div class="col-md-1"><input type="radio" name="after-q3" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="after-q3" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="after-q3" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="after-q3" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="after-q3" value="5"> 5 </div>
+                </div>
+
+                <button type="button" id="cont3" class="btn btn-primary">המשך</button>
             </div>
 
             <div id="done-div">
