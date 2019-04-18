@@ -103,7 +103,8 @@
              this.end_time = $.now();
              this.balloon = null;
              console.log(this);
-             endBart(this);
+             endBart();
+             bartData = this;
            }
          }
         }
@@ -127,7 +128,7 @@
         $("#bart-div").show();
       });
 
-      function endBart(bartData){
+      function endBart(){
         $("#bart-div").hide("slow", "swing");
         $("#after-questions").show();
       } 
