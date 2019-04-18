@@ -42,6 +42,7 @@
       if (!readyToStart) return;
 
       $("#openness-div").show();
+      $('#loadingModal').modal("hide");
     }
 
     var bartData;
@@ -60,6 +61,11 @@
     
     // initialize the BART after the page has loaded
     $(document).ready(function () {
+
+        // Start the loading screen
+        $('#loadingModal').modal({
+            show: 'true'
+        }); 
       
       // Hide all relevant divs
       if (!readyToStart) $("#openness-div").hide();
@@ -80,9 +86,9 @@
       // create a BART
       $("#bart").bart(
         {b: [
-          {b: 20, o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
-          {b: 20, o: $.extend({color: 'red', popprob: 128 }, bOpts)},
-          {b: 20, o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
+          {b: 1, o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
+          {b: 0, o: $.extend({color: 'red', popprob: 128 }, bOpts)},
+          {b: 0, o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
         ],
          s: {
             txt_cashin: 'קח את הכסף',
@@ -123,9 +129,19 @@
         }
       });
 
+      var MIN_TEXT_SIZE = 20;
+
+      function validateMSText(){
+        return $("#death1").val().length >= MIN_TEXT_SIZE && $("#death2").val().length >= MIN_TEXT_SIZE; 
+      }
+
       $("#cont2").click(function(){
-        $("#ms-div").hide("slow", "swing");
-        $("#bart-div").show();
+        if (validateMSText()){
+            $("#ms-div").hide("slow", "swing");
+            $("#bart-div").show();
+        } else {
+            alert("אנא מלא/י לפחות 20 תווים בתיבות הטקסט");
+        }
       });
 
       function endBart(){
@@ -136,7 +152,6 @@
         var valid = true;
         if (valid){
             $("#after-questions").hide("slow", "swing");
-            $("#done-div").show();
             saveToGoogleSheets(bartData);
         } else {
             alert("אנא מלא/י את כל השאלות")
@@ -165,6 +180,7 @@
       };
       console.log(data);
       console.log("saving...");
+      $('#loadingModal').modal("show");
       $.ajax({
         url: url,
         method: "GET",
@@ -172,6 +188,8 @@
         data: data,
         success: function() {
           console.log("saved data to google spreadsheets");
+          $('#loadingModal').modal("hide");
+          $("#done-div").show();
         }
       });
     }
@@ -186,6 +204,22 @@
             <h1 style="text-align: center;">ניסוי</h1>
             <br/><br/>
         </div>
+
+        <!-- Loading modal -->
+        <div class="modal fade" id="loadingModal" role="dialog">
+            <div class="modal-dialog">
+            
+              <!-- Modal content-->
+              <div class="modal-content">
+                <div class="modal-body">
+                  <h1>טוען............</h1>
+                </div>
+              </div>
+              
+            </div>
+        </div>
+        <!--End of Loading modal -->
+
 
         <div class="container">
             <form>
@@ -295,7 +329,10 @@
 
             <div id="ms-div">
                 <div class="row"><h2>כתוב כל מיני מחשבות על המוות שלך</h2></div>
-                <div class="row"><textarea rows="10" cols="100" id="death"></textarea></div>
+                <div class="row"><textarea rows="10" cols="100" id="death1"></textarea></div>
+
+                <div class="row"><h2>כתוב כל מיני מחשבות על המוות שלך</h2></div>
+                <div class="row"><textarea rows="10" cols="100" id="death2"></textarea></div>
 
                 <button type="button" id="cont2" class="btn btn-primary">המשך</button>
             </div>
