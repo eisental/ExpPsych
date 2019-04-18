@@ -70,6 +70,8 @@
       // Hide all relevant divs
       if (!readyToStart) $("#openness-div").hide();
       $("#ms-div").hide();
+      $("#dental-div").hide();
+      $("#bart-instructions").hide();
       $("#bart-div").hide();
       $("#done-div").hide();
       $("#after-questions").hide();
@@ -116,6 +118,20 @@
         }
       );
 
+      function manipulationShow(){
+        if (experimentGroup == 1)
+            $("#ms-div").show();
+        else
+            $("#dental-div").show();
+      }
+
+      function manipulationHide(){
+        if (experimentGroup == 1)
+            $("#ms-div").hide("slow", "swing");
+        else
+            $("#dental-div").hide("slow", "swing");
+      }
+
       $("#cont1").click(function(){
         // Validate the input
         var valid = true;
@@ -123,7 +139,7 @@
 
         if (valid){
             $("#openness-div").hide("slow", "swing");
-            $("#ms-div").show();
+            manipulationShow();
         } else {
             alert("אנא מלא את כל המסיחים")
         }
@@ -131,17 +147,25 @@
 
       var MIN_TEXT_SIZE = 20;
 
-      function validateMSText(){
-        return $("#death1").val().length >= MIN_TEXT_SIZE && $("#death2").val().length >= MIN_TEXT_SIZE; 
+      function validateText(){
+        if (experimentGroup == 1)
+            return $("#death1").val().length >= MIN_TEXT_SIZE && $("#death2").val().length >= MIN_TEXT_SIZE;
+        else
+            return $("#dental1").val().length >= MIN_TEXT_SIZE && $("#dental2").val().length >= MIN_TEXT_SIZE;
       }
 
-      $("#cont2").click(function(){
-        if (validateMSText()){
-            $("#ms-div").hide("slow", "swing");
-            $("#bart-div").show();
+      $(".manipulation-continue").click(function(){
+        if (validateText()){
+            manipulationHide();
+            $("#bart-instructions").show();
         } else {
             alert("אנא מלא/י לפחות 20 תווים בתיבות הטקסט");
         }
+      });
+
+      $("#contToBart").click(function(){
+        $("#bart-instructions").hide("slow", "swing");
+        $("#bart-div").show();
       });
 
       function endBart(){
@@ -334,7 +358,26 @@
                 <div class="row"><h2>כתוב כל מיני מחשבות על המוות שלך</h2></div>
                 <div class="row"><textarea rows="10" cols="100" id="death2"></textarea></div>
 
-                <button type="button" id="cont2" class="btn btn-primary">המשך</button>
+                <button type="button" class="manipulation-continue btn btn-primary">המשך</button>
+            </div>
+
+            <div id="dental-div">
+                <div class="row"><h2>כתוב דברים על טיפול שיניים</h2></div>
+                <div class="row"><textarea rows="10" cols="100" id="dental1"></textarea></div>
+
+                <div class="row"><h2>כתוב עוד דברים על טיפול שיניים</h2></div>
+                <div class="row"><textarea rows="10" cols="100" id="dental2"></textarea></div>
+
+                <button type="button" class="manipulation-continue btn btn-primary">המשך</button>
+            </div>
+
+            <div id="bart-instructions">
+                <p>
+                <h3>
+                בחלק זה מטרתכם היא לצבור כמה שיותר כסף. יוצגו בפניכם בלונים, ככל שהבלון מנופח יותר הוא שווה יותר כסף. בכל שלב עליכם להחליט האם לנפח את הבלון בעזרת לחיצה על הכפתור "נפח" ובכך להגדיל את שוויו או לאסוף את הכסף שצברתם עבור בלון זה בעזרת לחיצה על כפתור "קח את הכסף". שימו לב שהבלונים עלולים להתפוצץ בכל שלב החל מהניפוח הראשון ועד למצב שהבלון ממלא את כל המסך, אם הבלון יתפוצץ לא תוכלו לקבל עליו כסף כלל. בכל שלב יצוין על המסך שווי הבלון הנוכחי, מספר הפעמים שניפחת בלון זה וסך הכסף שנאסף.
+                </h3>
+                </p>
+                <button type="button" id="contToBart" class="btn btn-primary">המשך</button>
             </div>
 
             <div id="bart-div">
