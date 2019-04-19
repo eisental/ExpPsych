@@ -18,11 +18,24 @@
   <script type="text/javascript">
     //<![CDATA[
     
+    // Set this to true to bypass validation and shorten the bart test.
+    var testMode = true; 
+
+    // When this is true it means we have everything we need to start the experiment.
     var readyToStart = false;
+
+    // Id of the Google Spreadsheet we use as database.
+    var spreadsheetId = "1dcMtqcaZWEMNIGioV6910tRyE0t27jvku91aC_S9EMg";
+
+    // Google API key for reading the spreadhseet.
+    var apiKey = "AIzaSyDRyViKp4jP-4DiVUeLHsE8O8bciMNtTCs";
 
     // Select the experiment group (mt=1/non-mt=0) 
     var experimentGroup;
-    var urlExperimentGroupColumn = "https://sheets.googleapis.com/v4/spreadsheets/1dcMtqcaZWEMNIGioV6910tRyE0t27jvku91aC_S9EMg/values/Sheet1!A2:A1000?key=AIzaSyDRyViKp4jP-4DiVUeLHsE8O8bciMNtTCs"
+
+    // Retrieve group column from spreadhseet.
+    var urlExperimentGroupColumn = "https://sheets.googleapis.com/v4/spreadsheets/" 
+        + spreadsheetId + "/values/Sheet1!A2:A1000?key=" + apiKey;
     
     $.getJSON(urlExperimentGroupColumn, function(data) {
       var count0 = 0;
@@ -34,16 +47,11 @@
 
       experimentGroup = count0 > count1 ? 1 : 0;
       console.log(count0 + " 0s, " + count1 + " 1s. Setting group to " + experimentGroup);
+
       readyToStart = true;
-      startExperiment();
+      $("#start").attr("disabled", false);
+      $("#start").html("התחל");
     });
-
-    function startExperiment() {
-      if (!readyToStart) return;
-
-      $("#openness-div").show();
-      $('#loadingModal').modal("hide");
-    }
 
     var bartData;
 
@@ -59,24 +67,14 @@
       })
     }
     
-    // initialize the BART after the page has loaded
+    // This will run once you can safely access DOM
     $(document).ready(function () {
-
-        // Start the loading screen
-        $('#loadingModal').modal({
-            show: 'true'
-        }); 
-      
-      // Hide all relevant divs
-      if (!readyToStart) $("#openness-div").hide();
-      $("#ms-div").hide();
-      $("#dental-div").hide();
-      $("#bart-instructions").hide();
-      $("#bart-div").hide();
-      $("#done-div").hide();
-      $("#after-questions").hide();
+      // start button is disabled until experiment is ready.
+      $("#start").attr("disabled", true);
 
       // Setup BART
+      balloonCount = 45;
+
       var bOpts = {
         min_pump: 2, 
         earnings: 0.25,
@@ -88,13 +86,13 @@
       // create a BART
       $("#bart").bart(
         {b: [
-          {b: 1, o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
-          {b: 0, o: $.extend({color: 'red', popprob: 128 }, bOpts)},
-          {b: 0, o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
+          {b: (testMode ? 0 : balloonCount/3), o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
+          {b: (testMode ? 1 : balloonCount/3), o: $.extend({color: 'red', popprob: 128 }, bOpts)},
+          {b: (testMode ? 0 : balloonCount/3), o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
         ],
          s: {
-            txt_cashin: 'קח את הכסף',
-            txt_inflate: 'נפח',
+            txt_cashin: 'קחו את הכסף',
+            txt_inflate: 'נפחו',
             txt_next: 'הבא:',
             txt_balloon_number: 'בלון: ',
             txt_number_of_pumps: 'ניפוחים: ',
@@ -122,26 +120,30 @@
         if (experimentGroup == 1)
             $("#ms-div").show();
         else
-            $("#dental-div").show();
+            $("#non-ms-div").show();
       }
 
       function manipulationHide(){
         if (experimentGroup == 1)
             $("#ms-div").hide("slow", "swing");
         else
-            $("#dental-div").hide("slow", "swing");
+            $("#non-ms-div").hide("slow", "swing");
       }
+
+      $("#start").click(function() {
+        $("#openness-div").show();
+        $("#welcome-div").hide("slow", "swing");
+      });
 
       $("#cont1").click(function(){
         // Validate the input
-        var valid = true;
-        valid = $("input[name^='q']:checked").length == 9;
+        var valid = $("input[name^='q']:checked").length == 9;
 
-        if (valid){
+        if (testMode || valid){
             $("#openness-div").hide("slow", "swing");
             manipulationShow();
         } else {
-            alert("אנא מלא את כל המסיחים")
+            alert("אנא ענו על כל השאלות.")
         }
       });
 
@@ -149,17 +151,17 @@
 
       function validateText(){
         if (experimentGroup == 1)
-            return $("#death1").val().length >= MIN_TEXT_SIZE && $("#death2").val().length >= MIN_TEXT_SIZE;
+            return $("#ms1").val().length >= MIN_TEXT_SIZE && $("#ms2").val().length >= MIN_TEXT_SIZE;
         else
-            return $("#dental1").val().length >= MIN_TEXT_SIZE && $("#dental2").val().length >= MIN_TEXT_SIZE;
+            return $("#non-ms1").val().length >= MIN_TEXT_SIZE && $("#non-ms2").val().length >= MIN_TEXT_SIZE;
       }
 
       $(".manipulation-continue").click(function(){
-        if (validateText()){
+        if (testMode || validateText()){
             manipulationHide();
             $("#bart-instructions").show();
         } else {
-            alert("אנא מלא/י לפחות 20 תווים בתיבות הטקסט");
+            alert("אנא מלא/י לפחות 20 תווים בתיבות הטקסט.");
         }
       });
 
@@ -174,11 +176,11 @@
       } 
       $("#cont3").click(function(){
         var valid = true;
-        if (valid){
+        if (testMode || valid){
             $("#after-questions").hide("slow", "swing");
             saveToGoogleSheets(bartData);
         } else {
-            alert("אנא מלא/י את כל השאלות")
+            alert("אנא ענו על כל השאלות.")
         }
            
       });            
@@ -190,21 +192,25 @@
     function saveToGoogleSheets(bartData) {
       var data = {
         "group": experimentGroup,
-        "q1": $("input[name='q1']:checked").val(),
-        "q2": $("input[name='q2']:checked").val(),
-        "q3": $("input[name='q3']:checked").val(),
-        "q4": $("input[name='q4']:checked").val(),
-        "q5": $("input[name='q5']:checked").val(),
-        "q6": $("input[name='q6']:checked").val(),
-        "q7": $("input[name='q7']:checked").val(),
-        "q8": $("input[name='q8']:checked").val(),
-        "q9": $("input[name='q9']:checked").val(),
-        "death": $("#death").val(),
+        "openness1": $("input[name='openness1']:checked").val(),
+        "openness2": $("input[name='openness2']:checked").val(),
+        "openness3": $("input[name='openness3']:checked").val(),
+        "openness4": $("input[name='openness4']:checked").val(),
+        "openness5": $("input[name='openness5']:checked").val(),
+        "openness6": $("input[name='openness6']:checked").val(),
+        "openness7": $("input[name='openness7']:checked").val(),
+        "openness8": $("input[name='openness8']:checked").val(),
+        "openness9": $("input[name='openness9']:checked").val(),
+        "ms1": $("#ms1").val(),
+        "ms2": $("#ms2").val(),
+        "non-ms1": $("#non-ms1").val(),
+        "non-ms2": $("#non-ms2").val(),
         "bart": bartData.earned
       };
       console.log(data);
       console.log("saving...");
-      $('#loadingModal').modal("show");
+      $('#done-div').show();
+
       $.ajax({
         url: url,
         method: "GET",
@@ -212,23 +218,15 @@
         data: data,
         success: function() {
           console.log("saved data to google spreadsheets");
-          $('#loadingModal').modal("hide");
-          $("#done-div").show();
+          $("#wait-to-save").html("המידע נשמר!");
         }
       });
     }
-
-    startExperiment();    
 
     //]]>
   </script>
   </head>
     <body>
-        <div style="width: 600px; margin:auto;">            
-            <h1 style="text-align: center;">ניסוי</h1>
-            <br/><br/>
-        </div>
-
         <!-- Loading modal -->
         <div class="modal fade" id="loadingModal" role="dialog">
             <div class="modal-dialog">
@@ -246,147 +244,160 @@
 
 
         <div class="container">
+          <div id="welcome-div" style="div p { font-size: 120%; }">
+            <h1>מחקר בפסיכולוגיה ניסויית</h1>
+            <p>שלום,</p>
+            <p>אנחנו גיל, טל וליאור, סטודנטים לתואר ראשון בפסיכולוגיה באוניברסיטת תל אביב. במסגרת לימודינו אנו עורכים מחקר בנושא קבלת החלטות ונעריך זאת אם תסכים/י להשתתף בו.</p>
+            <p>במחקר תתבקש/י לבצע מטלות שונות, נבקש שתענה/י עליהן בכנות ובריכוז.
+השאלון הוא אנונימי ומובטחת לך סודיות באשר לזהותך האישית. תשובותיך ישמשו לצורך מחקר זה בלבד.
+</p>
+            <p>הזמן הדרוש עבור ההשתתפות בניסוי הוא כ־10 דקות. 
+יש לבצע את המטלות בעזרת מחשב בלבד (ולא באמצעות סמרטפון, למשל), עם רמקולים פועלים או עם אוזניות וללא הפסקות.
+              </p><br>
+            <p>בלחיצה על כפתור "התחל" הנך מאשר/ת את השתתפותך בניסוי, עם זאת, ניתן להפסיק את ההשתתפות בכל עת.</p>
+            <p>תודה רבה!</p>
+            <button type="button" id="start" class="btn btn-primary">טוען...</button>
+          </div>
             <form>
-            <div id="openness-div">
+            <div id="openness-div" style="display: none;">
                 <div class="row"><h2>אני רואה עצמי כאדם מקורי הנוטה להעלות רעיונות חדשים</h2></div>
 
                 <div class="row">
                     <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="q1" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="q1" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="q1" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="q1" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="q1" value="5"> 5 </div>
+                    <div class="col-md-1"><input type="radio" name="openness1" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="openness1" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="openness1" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="openness1" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="openness1" value="5"> 5 </div>
                 </div>
 
                 <div class="row"><h2>אני רואה עצמי כסקרן/נית לגבי דברים רבים</h2></div>
 
                 <div class="row">
                     <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="q2" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="q2" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="q2" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="q2" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="q2" value="5"> 5 </div>
+                    <div class="col-md-1"><input type="radio" name="openness2" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="openness2" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="openness2" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="openness2" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="openness2" value="5"> 5 </div>
                 </div>
 
                 <div class="row"><h2>אני רואה עצמי כאדם חכם, שנון ומעמיק</h2></div>
 
                 <div class="row">
                     <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="q3" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="q3" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="q3" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="q3" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="q3" value="5"> 5 </div>
+                    <div class="col-md-1"><input type="radio" name="openness3" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="openness3" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="openness3" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="openness3" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="openness3" value="5"> 5 </div>
                 </div>
 
                 <div class="row"><h2>אני רואה עצמי כבעל/ת דמיון פעיל</h2></div>
 
                 <div class="row">
                     <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="q4" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="q4" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="q4" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="q4" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="q4" value="5"> 5 </div>
+                    <div class="col-md-1"><input type="radio" name="openness4" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="openness4" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="openness4" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="openness4" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="openness4" value="5"> 5 </div>
                 </div>
 
                 <div class="row"><h2>אני רואה עצמי כ"ממציא"</h2></div>
 
                 <div class="row">
                     <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="q5" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="q5" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="q5" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="q5" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="q5" value="5"> 5 </div>
+                    <div class="col-md-1"><input type="radio" name="openness5" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="openness5" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="openness5" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="openness5" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="openness5" value="5"> 5 </div>
                 </div>
 
                 <div class="row"><h2>אני יודע להעריך התנסויות אסתטיות ואומנותיות</h2></div>
 
                 <div class="row">
                     <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="q6" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="q6" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="q6" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="q6" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="q6" value="5"> 5 </div>
+                    <div class="col-md-1"><input type="radio" name="openness6" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="openness6" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="openness6" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="openness6" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="openness6" value="5"> 5 </div>
                 </div>
 
                 <div class="row"><h2>אני מעדיף/ה עבודה שגרתית</h2></div>
 
                 <div class="row">
                     <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="q7" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="q7" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="q7" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="q7" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="q7" value="5"> 5 </div>
+                    <div class="col-md-1"><input type="radio" name="openness7" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="openness7" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="openness7" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="openness7" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="openness7" value="5"> 5 </div>
                 </div>
 
                 <div class="row"><h2>לעתים קרובות אני נהנה/נהנית לחשוב ולהשתעשע ברעיונות מופשטים</h2></div>
 
                 <div class="row">
                     <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="q8" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="q8" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="q8" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="q8" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="q8" value="5"> 5 </div>
+                    <div class="col-md-1"><input type="radio" name="openness8" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="openness8" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="openness8" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="openness8" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="openness8" value="5"> 5 </div>
                 </div>
 
                 <div class="row"><h2>אני מגלה עניין מועט באומנות</h2></div>
 
                 <div class="row">
                     <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="q9" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="q9" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="q9" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="q9" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="q9" value="5"> 5 </div>
+                    <div class="col-md-1"><input type="radio" name="openness9" value="1"> 1 </div>
+                    <div class="col-md-1"><input type="radio" name="openness9" value="2"> 2 </div>
+                    <div class="col-md-1"><input type="radio" name="openness9" value="3"> 3 </div>
+                    <div class="col-md-1"><input type="radio" name="openness9" value="4"> 4 </div>
+                    <div class="col-md-1"><input type="radio" name="openness9" value="5"> 5 </div>
                 </div>
 
                 <button type="button" id="cont1" class="btn btn-primary">המשך</button>
             </div>
 
 
-            <div id="ms-div">
-                <div class="row"><h2>כתוב כל מיני מחשבות על המוות שלך</h2></div>
-                <div class="row"><textarea rows="10" cols="100" id="death1"></textarea></div>
+            <div id="ms-div" style="display: none;">
+                <div class="row"><h2>תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על מותך.</h2></div>
+                <div class="row"><textarea rows="10" cols="100" id="ms1"></textarea></div>
 
-                <div class="row"><h2>כתוב כל מיני מחשבות על המוות שלך</h2></div>
-                <div class="row"><textarea rows="10" cols="100" id="death2"></textarea></div>
-
-                <button type="button" class="manipulation-continue btn btn-primary">המשך</button>
-            </div>
-
-            <div id="dental-div">
-                <div class="row"><h2>כתוב דברים על טיפול שיניים</h2></div>
-                <div class="row"><textarea rows="10" cols="100" id="dental1"></textarea></div>
-
-                <div class="row"><h2>כתוב עוד דברים על טיפול שיניים</h2></div>
-                <div class="row"><textarea rows="10" cols="100" id="dental2"></textarea></div>
+                <div class="row"><h2>תאר/י, באופן ספציפי עד כמה שתוכל/י, מה יקרה לגופך ברגע שתמות/י ולאחר מכן.</h2></div>
+                <div class="row"><textarea rows="10" cols="100" id="ms2"></textarea></div>
 
                 <button type="button" class="manipulation-continue btn btn-primary">המשך</button>
             </div>
 
-            <div id="bart-instructions">
+            <div id="non-ms-div" style="display: none;">
+                <div class="row"><h2>.תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על ביקור אצל רופא השיניים</h2></div>
+                <div class="row"><textarea rows="10" cols="100" id="non-ms1"></textarea></div>
+
+                <div class="row"><h2>תאר/י, באופן ספציפי עד כמה שתוכל/י, מה יקרה לך בעת ביקור אצל רופא השיניים.</h2></div>
+                <div class="row"><textarea rows="10" cols="100" id="non-ms2"></textarea></div>
+
+                <button type="button" class="manipulation-continue btn btn-primary">המשך</button>
+            </div>
+
+            <div id="bart-instructions" style="display: none;">
                 <p>
                 <h3>
-                בחלק זה מטרתכם היא לצבור כמה שיותר כסף. יוצגו בפניכם בלונים, ככל שהבלון מנופח יותר הוא שווה יותר כסף. בכל שלב עליכם להחליט האם לנפח את הבלון בעזרת לחיצה על הכפתור "נפח" ובכך להגדיל את שוויו או לאסוף את הכסף שצברתם עבור בלון זה בעזרת לחיצה על כפתור "קח את הכסף". שימו לב שהבלונים עלולים להתפוצץ בכל שלב החל מהניפוח הראשון ועד למצב שהבלון ממלא את כל המסך, אם הבלון יתפוצץ לא תוכלו לקבל עליו כסף כלל. בכל שלב יצוין על המסך שווי הבלון הנוכחי, מספר הפעמים שניפחת בלון זה וסך הכסף שנאסף.
+בחלק הבא של הניסוי  מטרתכם היא לנפח בלונים ולצבור כמה שיותר כסף. בכל שלב עליכם להחליט האם לנפח את הבלון בעזרת לחיצה על מקש הרווח או על הכפתור ״נפחו״ ובכך להגדיל את שוויו, או לאסוף את הכסף שצברתם עבור בלון זה בעזרת לחיצה על מקש C או על הכפתור ״קחו את הכסף״. שימו לב שהבלונים עלולים להתפוצץ בכל רגע החל מהניפוח הראשון ועד למצב שהבלון ממלא את כל המסך. אם הבלון יתפוצץ לא תוכלו לקבל עליו כסף כלל. בכל שלב יצוין על המסך שווי הבלון הנוכחי, מספר הפעמים שניפחתם בלון זה וסך הכסף שנאסף.
                 </h3>
                 </p>
                 <button type="button" id="contToBart" class="btn btn-primary">המשך</button>
             </div>
 
-            <div id="bart-div">
+            <div id="bart-div" style="display: none;">
                 <!-- load BART here -->
-                <h3>הסברים על הבארט אם בא לנו</h3>
-                <div id="bart"></div>
+                <div id="bart" style="align: center"></div>
             </div>
 
-            <div id="after-questions">
+            <div id="after-questions" style="display: none;">
                 <h4>אנא מלא את הפרטים הבאים</h4>
                 <h3>גיל: </h3> <input type="text" />
 
@@ -419,9 +430,10 @@
                 <button type="button" id="cont3" class="btn btn-primary">המשך</button>
             </div>
 
-            <div id="done-div">
+            <div id="done-div" style="display: none;">
                 <h1>תודה רבה!</h1>
                 <h2>הניסוי הסתיים</h2>
+                <h2 id="wait-to-save">אנא המתן לשמירת התוצאות...</h2>
             </div>
             </form>
         </div>
