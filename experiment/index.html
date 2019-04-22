@@ -6,6 +6,9 @@
     <title>ניסוי</title>
     <meta charset="utf-8" />
 
+    <!-- Survey Questions -->
+    <script type="text/javascript" src="questions.js"></script>
+
     <!-- these files are required for the BART to work    -->
     <script type="text/javascript" src="src/jquery-3.0.0.min.js"></script> <!-- basic javascript library for dom manipulation -->
     <script type="text/javascript" src="src/jcanvas.min.js"></script>      <!-- the canvas plugin -->
@@ -14,7 +17,6 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-  <!-- additional scripts to run the demo on this page -->
   <script type="text/javascript">
     //<![CDATA[
     
@@ -33,10 +35,17 @@
     // Select the experiment group (mt=1/non-mt=0) 
     var experimentGroup;
 
+    // Data collected during bart test.
+    var bartData;
+
+    // Data collected from surveys. first question names are added as keys and later the data comes.
+    var surveyResults = {};
+
+    // Select exeperiment group at startup:
     // Retrieve group column from spreadhseet.
     var urlExperimentGroupColumn = "https://sheets.googleapis.com/v4/spreadsheets/" 
         + spreadsheetId + "/values/Sheet1!A2:A1000?key=" + apiKey;
-    
+
     $.getJSON(urlExperimentGroupColumn, function(data) {
       var count0 = 0;
       var count1 = 0;
@@ -53,7 +62,32 @@
       $("#start").html("התחל");
     });
 
-    var bartData;
+    // Send data to Google Spreadsheets. calls success when done.
+    function saveToGoogleSheets(success) {
+      var data = {
+        "group": experimentGroup,
+        "ms1": $("#ms1").val(),
+        "ms2": $("#ms2").val(),
+        "non-ms1": $("#non-ms1").val(),
+        "non-ms2": $("#non-ms2").val(),
+        "bart": bartData.earned
+      };
+
+      // read answers from surveys.
+      for (q in surveyResults) {
+        surveyResults[q] = $("input[name='"+q+"']:checked").val()
+      }
+      Object.assign(data, surveyResults);
+
+      // call google appscript
+      $.ajax({
+        url: 'https://script.google.com/macros/s/AKfycbyC1KeNpB8MkE98at9wy5zr6jw-z1LZSn21v9n1I1hmWHUo7REs/exec',
+        method: "GET",
+        dataType: "json",
+        data: data,
+        success: success
+      });
+    }
 
     // Helper for enterKey in inputs
     $.fn.enterKey = function (fnc) {
@@ -66,11 +100,57 @@
         })
       })
     }
+
+    /* 
+     Generate html for a multiple answer question 
+     question - the question as a string.
+     answers - either:
+       - the number of possible answers. they will be numbered from 1 to n.
+       - a string array of possible answers
+     name - question id. same as column in spreadsheet
+    */
+    function multiQuestion(question, answers, name) {
+      if (typeof(answers) == "number") {
+        n = answers;
+        answers = []
+        for (i=0; i<n; i++)
+          answers[i] = i+1;
+      }
+      console.log("mq");
+      var questionHtml = 
+          '<div class="row"><h2>' + question + '</h2></div>' + 
+          '<div class="row"> <div class="col-md-4">&nbsp;</div>';
+
+      var answersHtml = '<div class="row">';
+      for (i=0; i<answers.length; i++) {
+        var a = answers[i];
+        answersHtml += '<div class="col-md-1"><input type="radio" name="' +name+ '" value="' +a+ '"> ' +a+ ' </div>';
+      };
+
+      return questionHtml + answersHtml + "</div></div>";
+    }
+
+    // generate survey html. name is the name used in questions.js
+    function generateSurvey(name) {
+      var qs = questions[name];
+      var n = qs.length;
+      var html = "";
+      for (var i=0; i<n; i++) {
+        var q = qs[i];
+        var qname = name + (i+1);
+        html += multiQuestion(q.q, q.a, qname);;
+        surveyResults[qname] = null;
+      }
+      return html;
+    }
     
     // This will run once you can safely access DOM
     $(document).ready(function () {
       // start button is disabled until experiment is ready.
       $("#start").attr("disabled", true);
+
+      // load surveys
+      $("#openness-div").prepend(generateSurvey("openness"));
 
       // Setup BART
       balloonCount = 45;
@@ -174,55 +254,30 @@
         $("#bart-div").hide("slow", "swing");
         $("#after-questions").show();
       } 
+
+      function save() {
+        $("#after-questions").hide("slow", "swing");
+        console.log(bartData);
+        console.log("saving...");
+        $('#done-div').show();
+        
+        saveToGoogleSheets(function() {
+          console.log("saved data to google spreadsheets");
+          $("#wait-to-save").html("המידע נשמר!");          
+        });
+      }                          
+
       $("#cont3").click(function(){
         var valid = true;
         if (testMode || valid){
-            $("#after-questions").hide("slow", "swing");
-            saveToGoogleSheets(bartData);
+          save();
         } else {
-            alert("אנא ענו על כל השאלות.")
+          alert("אנא ענו על כל השאלות.")
         }
            
       });            
     });
-
-    // Send data to Google Spreadsheets:
-
-    var url = 'https://script.google.com/macros/s/AKfycbyC1KeNpB8MkE98at9wy5zr6jw-z1LZSn21v9n1I1hmWHUo7REs/exec';
-    function saveToGoogleSheets(bartData) {
-      var data = {
-        "group": experimentGroup,
-        "openness1": $("input[name='openness1']:checked").val(),
-        "openness2": $("input[name='openness2']:checked").val(),
-        "openness3": $("input[name='openness3']:checked").val(),
-        "openness4": $("input[name='openness4']:checked").val(),
-        "openness5": $("input[name='openness5']:checked").val(),
-        "openness6": $("input[name='openness6']:checked").val(),
-        "openness7": $("input[name='openness7']:checked").val(),
-        "openness8": $("input[name='openness8']:checked").val(),
-        "openness9": $("input[name='openness9']:checked").val(),
-        "ms1": $("#ms1").val(),
-        "ms2": $("#ms2").val(),
-        "non-ms1": $("#non-ms1").val(),
-        "non-ms2": $("#non-ms2").val(),
-        "bart": bartData.earned
-      };
-      console.log(data);
-      console.log("saving...");
-      $('#done-div').show();
-
-      $.ajax({
-        url: url,
-        method: "GET",
-        dataType: "json",
-        data: data,
-        success: function() {
-          console.log("saved data to google spreadsheets");
-          $("#wait-to-save").html("המידע נשמר!");
-        }
-      });
-    }
-
+    
     //]]>
   </script>
   </head>
@@ -260,105 +315,6 @@
           </div>
             <form>
             <div id="openness-div" style="display: none;">
-                <div class="row"><h2>אני רואה עצמי כאדם מקורי הנוטה להעלות רעיונות חדשים</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="openness1" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="openness1" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="openness1" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="openness1" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="openness1" value="5"> 5 </div>
-                </div>
-
-                <div class="row"><h2>אני רואה עצמי כסקרן/נית לגבי דברים רבים</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="openness2" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="openness2" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="openness2" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="openness2" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="openness2" value="5"> 5 </div>
-                </div>
-
-                <div class="row"><h2>אני רואה עצמי כאדם חכם, שנון ומעמיק</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="openness3" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="openness3" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="openness3" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="openness3" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="openness3" value="5"> 5 </div>
-                </div>
-
-                <div class="row"><h2>אני רואה עצמי כבעל/ת דמיון פעיל</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="openness4" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="openness4" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="openness4" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="openness4" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="openness4" value="5"> 5 </div>
-                </div>
-
-                <div class="row"><h2>אני רואה עצמי כ"ממציא"</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="openness5" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="openness5" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="openness5" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="openness5" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="openness5" value="5"> 5 </div>
-                </div>
-
-                <div class="row"><h2>אני יודע להעריך התנסויות אסתטיות ואומנותיות</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="openness6" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="openness6" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="openness6" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="openness6" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="openness6" value="5"> 5 </div>
-                </div>
-
-                <div class="row"><h2>אני מעדיף/ה עבודה שגרתית</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="openness7" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="openness7" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="openness7" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="openness7" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="openness7" value="5"> 5 </div>
-                </div>
-
-                <div class="row"><h2>לעתים קרובות אני נהנה/נהנית לחשוב ולהשתעשע ברעיונות מופשטים</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="openness8" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="openness8" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="openness8" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="openness8" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="openness8" value="5"> 5 </div>
-                </div>
-
-                <div class="row"><h2>אני מגלה עניין מועט באומנות</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="openness9" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="openness9" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="openness9" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="openness9" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="openness9" value="5"> 5 </div>
-                </div>
-
                 <button type="button" id="cont1" class="btn btn-primary">המשך</button>
             </div>
 
@@ -374,10 +330,10 @@
             </div>
 
             <div id="non-ms-div" style="display: none;">
-                <div class="row"><h2>.תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על ביקור אצל רופא השיניים</h2></div>
+                <div class="row"><h2>.תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על טיפול אצל רופא השיניים</h2></div>
                 <div class="row"><textarea rows="10" cols="100" id="non-ms1"></textarea></div>
 
-                <div class="row"><h2>תאר/י, באופן ספציפי עד כמה שתוכל/י, מה יקרה לך בעת ביקור אצל רופא השיניים.</h2></div>
+                <div class="row"><h2>תאר/י, באופן ספציפי עד כמה שתוכל/י, מה יקרה לך בעת טיפול אצל רופא השיניים.</h2></div>
                 <div class="row"><textarea rows="10" cols="100" id="non-ms2"></textarea></div>
 
                 <button type="button" class="manipulation-continue btn btn-primary">המשך</button>
