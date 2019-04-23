@@ -89,18 +89,6 @@
       });
     }
 
-    // Helper for enterKey in inputs
-    $.fn.enterKey = function (fnc) {
-      return this.each(function () {
-        $(this).keypress(function (ev) {
-          var keycode = (ev.keyCode ? ev.keyCode : ev.which);
-          if (keycode == '13') {
-            fnc.call(this, ev);
-          }
-        })
-      })
-    }
-
     /* 
      Generate html for a multiple answer question 
      question - the question as a string.
@@ -143,7 +131,30 @@
       }
       return html;
     }
-    
+
+    // bart keyboard shortcuts
+    $(window).keydown(function(e) {
+      if ($("#bart-div").css('display') == 'none') return;
+      console.log("ll");
+      var button = null;
+
+      switch (e.keyCode) {
+      case 32: // space key
+        var inflate = $(".BARTinflate");
+        var next = $(".BARTnext");
+        if (next.css('display')!='none') button = next;        
+        else button = inflate
+        break;
+      case 67: // little c key
+        button = $(".BARTcashin");
+        break;
+      }
+
+      if (button==null || button.css('display') == 'none') return;
+      e.preventDefault(); 
+      button.click();
+    });
+
     // This will run once you can safely access DOM
     $(document).ready(function () {
       // start button is disabled until experiment is ready.
@@ -166,21 +177,22 @@
       // create a BART
       $("#bart").bart(
         {b: [
-          {b: (testMode ? 0 : balloonCount/3), o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
-          {b: (testMode ? 1 : balloonCount/3), o: $.extend({color: 'red', popprob: 128 }, bOpts)},
-          {b: (testMode ? 0 : balloonCount/3), o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
+          {b: (testMode ? 3 : balloonCount/3), o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
+          {b: (testMode ? 3 : balloonCount/3), o: $.extend({color: 'red', popprob: 128 }, bOpts)},
+          {b: (testMode ? 3 : balloonCount/3), o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
         ],
          s: {
-            txt_cashin: 'קחו את הכסף',
-            txt_inflate: 'נפחו',
-            txt_next: 'הבא:',
+            txt_cashin: 'קחו כסף (c)',
+            txt_inflate: 'נפחו (רווח)',
+            txt_next: 'הבא (רווח)',
             txt_balloon_number: 'בלון: ',
             txt_number_of_pumps: 'ניפוחים: ',
             txt_current_earned: 'שווי הבלון: ₪',
-            txt_total_earned: 'סה"כ: ₪',
+            txt_total_earned: 'רווח סה"כ: ₪',
             txt_prob_explosion: 'סיכוי לפיצוץ: ',
             txt_pumps_used: 'pumps_used: ',
            showpopprob: false,
+//           showballooncount: false,
            sounds: true,
            onload: function () {
              this.start_time = $.now();
@@ -340,11 +352,12 @@
             </div>
 
             <div id="bart-instructions" style="display: none;">
-                <p>
-                <h3>
-בחלק הבא של הניסוי  מטרתכם היא לנפח בלונים ולצבור כמה שיותר כסף. בכל שלב עליכם להחליט האם לנפח את הבלון בעזרת לחיצה על מקש הרווח או על הכפתור ״נפחו״ ובכך להגדיל את שוויו, או לאסוף את הכסף שצברתם עבור בלון זה בעזרת לחיצה על מקש C או על הכפתור ״קחו את הכסף״. שימו לב שהבלונים עלולים להתפוצץ בכל רגע החל מהניפוח הראשון ועד למצב שהבלון ממלא את כל המסך. אם הבלון יתפוצץ לא תוכלו לקבל עליו כסף כלל. בכל שלב יצוין על המסך שווי הבלון הנוכחי, מספר הפעמים שניפחתם בלון זה וסך הכסף שנאסף.
-                </h3>
-                </p>
+
+              <p>בחלק הבא של הניסוי מטרתכם היא לנפח בלונים ולצבור כמה שיותר כסף. </p>
+              <p>בכל שלב עליכם להחליט האם לנפח את הבלון בעזרת לחיצה על הכפתור ״נפחו״ ובכך להגדיל את שוויו, או לאסוף את הכסף שצברתם עבור בלון זה בעזרת לחיצה על הכפתור ״קחו את הכסף״. </p>
+              <p>שימו לב שהבלונים עלולים להתפוצץ בכל רגע החל מהניפוח הראשון ועד למצב שהבלון ממלא את כל המסך. אם הבלון יתפוצץ לא תוכלו לקבל עליו כסף כלל. בכל שלב יצוין על המסך שווי הבלון הנוכחי, מספר הפעמים שניפחתם בלון זה וסך הכסף שנאסף.</p>
+              <p>ניתן להשתמש במקש רווח כדי לנפח את הבלון ובמקש c כדי לאסוף את הכסף.</p>              
+                 
                 <button type="button" id="contToBart" class="btn btn-primary">המשך</button>
             </div>
 
