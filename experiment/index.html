@@ -21,7 +21,7 @@
     //<![CDATA[
     
     // Set this to true to bypass validation and shorten the bart test.
-    var testMode = false; 
+    var testMode = true; 
 
     // When this is true it means we have everything we need to start the experiment.
     var readyToStart = false;
@@ -70,7 +70,7 @@
         "ms2": $("#ms2").val(),
         "non-ms1": $("#non-ms1").val(),
         "non-ms2": $("#non-ms2").val(),
-        "bart": bartData.earned
+        "age": $("input[name='age']").val()
       };
 
       // read answers from surveys.
@@ -78,6 +78,20 @@
         surveyResults[q] = $("input[name='"+q+"']:checked").val()
       }
       Object.assign(data, surveyResults);
+
+      // read bart results
+      var bart = {
+        "bart-earned": bartData.earned,
+        "bart-duration": (bartData.end_time - bartData.start_time) / 1000,
+        "bart-blue-exploded": explodeCounter.blue,
+        "bart-yellow-exploded": explodeCounter.yellow,
+        "bart-red-exploded": explodeCounter.red,
+        "bart-blue-cashin": cashinCounter.blue, 
+        "bart-yellow-cashin": cashinCounter.yellow,
+        "bart-red-cashin": cashinCounter.red,
+        "bart-balloon-count": balloonCount,
+      }
+      Object.assign(data, bart);
 
       // call google appscript
       $.ajax({
@@ -104,9 +118,9 @@
         for (var i=0; i<n; i++)
           answers[i] = i+1;
       }
-      console.log("mq");
+
       var questionHtml = 
-          '<div class="row"><h2>' + question + '</h2></div>' + 
+          '<div class="row"><h3>' + question + '</h3></div>' + 
           '<div class="row"> <div class="col-md-4">&nbsp;</div>';
 
       var answersHtml = '<div class="row">';
@@ -135,7 +149,6 @@
     // bart keyboard shortcuts
     $(window).keydown(function(e) {
       if ($("#bart-div").css('display') == 'none') return;
-      console.log("ll");
       var button = null;
 
       switch (e.keyCode) {
@@ -165,38 +178,46 @@
       $("#tipi-div").prepend(generateSurvey("tipi"));
       $("#stress-div-inner").prepend(generateSurvey("stress"));
       $("#fearOfDeath-div-inner").prepend(generateSurvey("fearOfDeath"));
-
+      $("#demo-qs-div").append(generateSurvey("demographics"));
 
       // Setup BART
       balloonCount = 45;
+      explodeCounter = { blue: 0, yellow: 0, red: 0 };
+      cashinCounter = { blue: 0, yellow: 0, red: 0 };
 
       var bOpts = {
         min_pump: 2, 
         earnings: 0.25,
-        onstart: function(){ this.start_time= $.now(); },
-        onexplode: function(){ this.end_time = $.now(); },
-        oncashin: function(){ this.end_time = $.now(); }
+        onstart: function() { this.start_time= $.now(); },
+        onexplode: function() {
+          this.end_time = $.now();
+          explodeCounter[this.color] += 1;
+        },
+        oncashin: function() { 
+          this.end_time = $.now(); 
+          cashinCounter[this.color] += 1;
+        }
       };
 
       // create a BART
       $("#bart").bart(
         {b: [
-          {b: (testMode ? 3 : balloonCount/3), o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
-          {b: (testMode ? 3 : balloonCount/3), o: $.extend({color: 'red', popprob: 128 }, bOpts)},
-          {b: (testMode ? 3 : balloonCount/3), o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
+          {b: (testMode ? 1 : balloonCount/3), o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
+          {b: (testMode ? 0 : balloonCount/3), o: $.extend({color: 'red', popprob: 128 }, bOpts)},
+          {b: (testMode ? 0 : balloonCount/3), o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
         ],
          s: {
-            txt_cashin: 'קחו כסף (c)',
-            txt_inflate: 'נפחו (רווח)',
-            txt_next: 'הבא (רווח)',
-            txt_balloon_number: 'בלון: ',
-            txt_number_of_pumps: 'ניפוחים: ',
-            txt_current_earned: 'שווי הבלון: ₪',
-            txt_total_earned: 'רווח סה"כ: ₪',
-            txt_prob_explosion: 'סיכוי לפיצוץ: ',
-            txt_pumps_used: 'pumps_used: ',
+           txt_cashin: 'קחו כסף (c)',
+           txt_inflate: 'נפחו (רווח)',
+           txt_next: 'הבא (רווח)',
+           txt_balloon_number: 'בלון: ',
+           txt_number_of_pumps: 'ניפוחים: ',
+           txt_current_earned: 'שווי הבלון: ₪',
+           txt_total_earned: 'רווח סה"כ: ₪',
+           txt_prob_explosion: 'סיכוי לפיצוץ: ',
+           txt_pumps_used: 'pumps_used: ',
            showpopprob: false,
-//           showballooncount: false,
+           //  showballooncount: false,
            sounds: true,
            onload: function () {
              this.start_time = $.now();
@@ -204,9 +225,8 @@
            onend: function () {
              this.end_time = $.now();
              this.balloon = null;
-             console.log(this);
-             endBart();
              bartData = this;
+             endBart();
            }
          }
         }
@@ -283,6 +303,7 @@
       });
 
       function endBart(){
+        console.log(bartData);
         $("#bart-div").hide("slow", "swing");
         $("#stress-div").show();
       } 
@@ -360,6 +381,7 @@
             <p>שלום,</p>
             <p>אנחנו גיל, טל וליאור, סטודנטים לתואר ראשון בפסיכולוגיה באוניברסיטת תל אביב. במסגרת לימודינו אנו עורכים מחקר בנושא קבלת החלטות ונעריך זאת אם תסכים/י להשתתף בו.</p>
             <p>במחקר תתבקש/י לבצע מטלות שונות, נבקש שתענה/י עליהן בכנות ובריכוז.
+חלק מהשאלות מנוסחות בלשון זכר אך מופנות לשני המינים.
 השאלון הוא אנונימי ומובטחת לך סודיות באשר לזהותך האישית. תשובותיך ישמשו לצורך מחקר זה בלבד.
 </p>
             <p>הזמן הדרוש עבור ההשתתפות בניסוי הוא כ־10 דקות. 
@@ -429,34 +451,10 @@
             </div>
 
             <div id="after-questions" style="display: none;">
-                <h4>אנא מלא את הפרטים הבאים</h4>
-                <h3>גיל: </h3> <input type="text" />
+                <h4>אנא מלאו את הפרטים הבאים</h4>
+                <h3>גיל: </h3> <input type="text" name="age"/>
 
-                <h3>מין: </h3>
-                    <input type="radio" name="after-q1" value="male"> זכר </br>
-                    <input type="radio" name="after-q1" value="female"> נקבה </br>
-
-                <div class="row"><h2>שאלה 1</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="after-q2" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="after-q2" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="after-q2" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="after-q2" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="after-q2" value="5"> 5 </div>
-                </div>
-
-                <div class="row"><h2>שאלה 2</h2></div>
-
-                <div class="row">
-                    <div class="col-md-4">&nbsp;</div>
-                    <div class="col-md-1"><input type="radio" name="after-q3" value="1"> 1 </div>
-                    <div class="col-md-1"><input type="radio" name="after-q3" value="2"> 2 </div>
-                    <div class="col-md-1"><input type="radio" name="after-q3" value="3"> 3 </div>
-                    <div class="col-md-1"><input type="radio" name="after-q3" value="4"> 4 </div>
-                    <div class="col-md-1"><input type="radio" name="after-q3" value="5"> 5 </div>
-                </div>
+                <div id="demo-qs-div"></div>
 
                 <button type="button" id="cont3" class="btn btn-primary">המשך</button>
             </div>
