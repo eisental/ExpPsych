@@ -101,7 +101,7 @@
       if (typeof(answers) == "number") {
         n = answers;
         answers = []
-        for (i=0; i<n; i++)
+        for (var i=0; i<n; i++)
           answers[i] = i+1;
       }
       console.log("mq");
@@ -110,7 +110,7 @@
           '<div class="row"> <div class="col-md-4">&nbsp;</div>';
 
       var answersHtml = '<div class="row">';
-      for (i=0; i<answers.length; i++) {
+      for (var i=0; i<answers.length; i++) {
         var a = answers[i];
         answersHtml += '<div class="col-md-1"><input type="radio" name="' +name+ '" value="' +a+ '"> ' +a+ ' </div>';
       };
@@ -162,6 +162,10 @@
 
       // load surveys
       $("#openness-div").prepend(generateSurvey("openness"));
+      $("#tipi-div").prepend(generateSurvey("tipi"));
+      $("#stress-div-inner").prepend(generateSurvey("stress"));
+      $("#fearOfDeath-div-inner").prepend(generateSurvey("fearOfDeath"));
+
 
       // Setup BART
       balloonCount = 45;
@@ -227,17 +231,33 @@
         $("#welcome-div").hide("slow", "swing");
       });
 
+
+      // The openness div BTN
       $("#cont1").click(function(){
         // Validate the input
         var valid = $("input[name^='q']:checked").length == 9;
 
         if (testMode || valid){
             $("#openness-div").hide("slow", "swing");
+            $("#tipi-div").show()
+        } else {
+            alert("אנא ענו על כל השאלות.")
+        }
+      });
+
+      $("#tipiBtn").click(function(){
+        // Validate the input
+        var valid = $("input[name^='q']:checked").length == 10;
+
+        if (testMode || valid){
+            $("#tipi-div").hide("slow", "swing");
             manipulationShow();
         } else {
             alert("אנא ענו על כל השאלות.")
         }
       });
+
+      
 
       var MIN_TEXT_SIZE = 20;
 
@@ -264,8 +284,32 @@
 
       function endBart(){
         $("#bart-div").hide("slow", "swing");
-        $("#after-questions").show();
+        $("#stress-div").show();
       } 
+
+      $("#stressBtn").click(function(){
+        // Validate the input
+        var valid = $("input[name^='q']:checked").length == 15;
+
+        if (testMode || valid){
+            $("#stress-div").hide("slow", "swing");
+            $("#fearOfDeath-div").show();
+        } else {
+            alert("אנא ענו על כל השאלות.")
+        }
+      });
+
+      $("#fearOfDeathBtn").click(function(){
+        // Validate the input
+        var valid = $("input[name^='q']:checked").length == 20;
+
+        if (testMode || valid){
+            $("#fearOfDeath-div").hide("slow", "swing");
+            $("#after-questions").show();
+        } else {
+            alert("אנא ענו על כל השאלות.")
+        }
+      });
 
       function save() {
         $("#after-questions").hide("slow", "swing");
@@ -330,6 +374,10 @@
                 <button type="button" id="cont1" class="btn btn-primary">המשך</button>
             </div>
 
+            <div id="tipi-div" style="display: none;">
+                <button type="button" id="tipiBtn" class="btn btn-primary">המשך</button>
+            </div>
+
 
             <div id="ms-div" style="display: none;">
                 <div class="row"><h2>תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על מותך.</h2></div>
@@ -364,6 +412,20 @@
             <div id="bart-div" style="display: none;">
                 <!-- load BART here -->
                 <div id="bart" style="align: center"></div>
+            </div>
+
+            <div id="stress-div" style="display: none;">
+                <h3>להלן מספר משפטים בהם משתמשים אנשים בדרך כלל לתאר את עצמם.</h3>
+                <h3>קרא/י כל משפט ובחר/י בספרה המתאימה ביותר לתיאור הרגשתך עכשיו, כלומר ברגע זה.</h3>
+                <h3>אל תתעכב/י זמן רב מדי על משפט כלשהו, אלא בחר/י את התשובה הנראית לך כמתארת בצורה הטובה ביותר את רגשותיך הנוכחיים</h3>
+                <div id="stress-div-inner"></div>
+                <button type="button" id="stressBtn" class="btn btn-primary">המשך</button>
+            </div>
+
+            <div id="fearOfDeath-div" style="display: none;">
+                <h3>לפניך 15 משפטים קצרים המתארים התייחסויות שונות ורגשות שונים כלפי המוות. אנא קרא/י את המשפטים וסמן/י לגבי כל משפט את מידת נכונותו לגביך</h3>
+                <div id="fearOfDeath-div-inner"></div>
+                <button type="button" id="fearOfDeathBtn" class="btn btn-primary">המשך</button>
             </div>
 
             <div id="after-questions" style="display: none;">
