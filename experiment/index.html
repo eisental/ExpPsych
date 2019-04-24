@@ -21,7 +21,7 @@
     //<![CDATA[
     
     // Set this to true to bypass validation and shorten the bart test.
-    var testMode = true; 
+    var testMode = false; 
 
     // When this is true it means we have everything we need to start the experiment.
     var readyToStart = false;
@@ -235,7 +235,7 @@
       // The openness div BTN
       $("#cont1").click(function(){
         // Validate the input
-        var valid = $("input[name^='q']:checked").length == 9;
+        var valid = $("input[name^='openness']:checked").length == 9;
 
         if (testMode || valid){
             $("#openness-div").hide("slow", "swing");
@@ -247,7 +247,7 @@
 
       $("#tipiBtn").click(function(){
         // Validate the input
-        var valid = $("input[name^='q']:checked").length == 10;
+        var valid = $("input[name^='tipi']:checked").length == 10;
 
         if (testMode || valid){
             $("#tipi-div").hide("slow", "swing");
@@ -289,7 +289,7 @@
 
       $("#stressBtn").click(function(){
         // Validate the input
-        var valid = $("input[name^='q']:checked").length == 15;
+        var valid = $("input[name^='stress']:checked").length == 20;
 
         if (testMode || valid){
             $("#stress-div").hide("slow", "swing");
@@ -301,7 +301,7 @@
 
       $("#fearOfDeathBtn").click(function(){
         // Validate the input
-        var valid = $("input[name^='q']:checked").length == 20;
+        var valid = $("input[name^='fearOfDeath']:checked").length == 15;
 
         if (testMode || valid){
             $("#fearOfDeath-div").hide("slow", "swing");
