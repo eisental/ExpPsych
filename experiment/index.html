@@ -146,13 +146,22 @@
       return html;
     }
 
-    // bart keyboard shortcuts
+    // bart keyboard shortcuts    
+    var bartModalShown = false; // when it's shown space will hide it.
+    var down = {}; // hold which keys are currently down.
+
     $(window).keydown(function(e) {
+      var keycode = e.keyCode ? e.keyCode : e.which;
+      if (down[keycode]) return; // key is already down. prevent auto-repeat.
+      down[keycode] = true;
+
       if ($("#bart-div").css('display') == 'none') return;
       var button = null;
 
-      switch (e.keyCode) {
+      switch (keycode) {
       case 32: // space key
+        if (bartModalShown) $("#bart-begin-modal").modal("hide");
+
         var inflate = $(".BARTinflate");
         var next = $(".BARTnext");
         if (next.css('display')!='none') button = next;        
@@ -162,6 +171,12 @@
         button = $(".BARTcashin");
         break;
       }
+
+      // clear key from down object
+      $(window).keyup(function(e) {
+        var keycode = e.keyCode ? e.keyCode : e.which;
+        down[keycode] = null;
+      });
 
       if (button==null || button.css('display') == 'none') return;
       e.preventDefault(); 
@@ -217,7 +232,7 @@
            txt_prob_explosion: 'סיכוי לפיצוץ: ',
            txt_pumps_used: 'pumps_used: ',
            showpopprob: false,
-           //  showballooncount: false,
+           showballooncount: false,
            sounds: true,
            onload: function () {
              this.start_time = $.now();
@@ -277,8 +292,6 @@
         }
       });
 
-      
-
       var MIN_TEXT_SIZE = 20;
 
       function validateText(){
@@ -300,6 +313,10 @@
       $("#contToBart").click(function(){
         $("#bart-instructions").hide("slow", "swing");
         $("#bart-div").show();
+        bartModalShown = true; // flag this so space key will hide it.
+        $('#bart-begin-modal').modal({
+            show: 'true'
+        });         
       });
 
       function endBart(){
@@ -375,6 +392,18 @@
         </div>
         <!--End of Loading modal -->
 
+        <div class="modal fade" id="bart-begin-modal" role="dialog">
+            <div class="modal-dialog">
+            
+              <!-- Modal content-->
+              <div class="modal-content">
+                <div class="modal-body">
+                  <h3>לחץ/י על מקש הרווח כדי להתחיל.</h3>
+                </div>
+              </div>
+              
+            </div>
+        </div>
 
         <div class="container">
           <div id="welcome-div" style="div p { font-size: 120%; }">
@@ -413,7 +442,7 @@
             </div>
 
             <div id="non-ms-div" style="display: none;">
-                <div class="row"><h2>.תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על טיפול אצל רופא השיניים</h2></div>
+                <div class="row"><h2>תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על טיפול אצל רופא השיניים.</h2></div>
                 <div class="row"><textarea rows="10" cols="100" id="non-ms1"></textarea></div>
 
                 <div class="row"><h2>תאר/י, באופן ספציפי עד כמה שתוכל/י, מה יקרה לך בעת טיפול אצל רופא השיניים.</h2></div>
