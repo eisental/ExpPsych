@@ -161,8 +161,8 @@
       $("#start").attr("disabled", true);
 
       // load surveys
-      $("#openness-div").prepend(generateSurvey("openness"));
-      $("#tipi-div").prepend(generateSurvey("tipi"));
+      $("#openness-div-inner").prepend(generateSurvey("openness"));
+      $("#tipi-div-inner").prepend(generateSurvey("tipi"));
       $("#stress-div-inner").prepend(generateSurvey("stress"));
       $("#fearOfDeath-div-inner").prepend(generateSurvey("fearOfDeath"));
 
@@ -371,10 +371,16 @@
           </div>
             <form>
             <div id="openness-div" style="display: none;">
+                <h3>סמנו עד כמה אתם מסכימים עם כל אחד מההיגדים הבאים:</h3>
+                <h3>(1 - לא מסכים כלל, 5 - מסכים מאוד)</h3>
+                <div id = "openness-div-inner"></div>
                 <button type="button" id="cont1" class="btn btn-primary">המשך</button>
             </div>
 
             <div id="tipi-div" style="display: none;">
+                <h3>סמנו עד כמה אתם מסכימים עם כל אחד מההיגדים הבאים:</h3>
+                <h3>(1 - לא מסכים כלל, 7 - מסכים מאוד)</h3>
+                <div id = "tipi-div-inner"></div>
                 <button type="button" id="tipiBtn" class="btn btn-primary">המשך</button>
             </div>
 
