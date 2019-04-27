@@ -146,20 +146,30 @@
       return html;
     }
 
+    // scroll to top of the page. useful after hiding a div. 
+    function smoothScrollToTop() {
+      var c = document.documentElement.scrollTop || document.body.scrollTop;
+      if (c > 0) {
+        window.requestAnimationFrame(smoothScrollToTop);
+        window.scrollTo(0, c - c / 8);
+      }
+    }
+
     // bart keyboard shortcuts    
     var bartModalShown = false; // when it's shown space will hide it.
     var down = {}; // hold which keys are currently down.
 
     $(window).keydown(function(e) {
+      if ($("#bart-div").css('display') == 'none') return;
+
       var keycode = e.keyCode ? e.keyCode : e.which;
       if (down[keycode]) return; // key is already down. prevent auto-repeat.
       down[keycode] = true;
 
-      if ($("#bart-div").css('display') == 'none') return;
       var button = null;
 
       switch (keycode) {
-      case 32: // space key
+      case 13: // enter key
         if (bartModalShown) $("#bart-begin-modal").modal("hide");
 
         var inflate = $(".BARTinflate");
@@ -167,13 +177,15 @@
         if (next.css('display')!='none') button = next;        
         else button = inflate
         break;
-      case 67: // little c key
+      case 67: // c key
         button = $(".BARTcashin");
         break;
       }
 
       // clear key from down object
       $(window).keyup(function(e) {
+        if ($("#bart-div").css('display') == 'none') return;
+
         var keycode = e.keyCode ? e.keyCode : e.which;
         down[keycode] = null;
       });
@@ -223,8 +235,8 @@
         ],
          s: {
            txt_cashin: 'קחו כסף (c)',
-           txt_inflate: 'נפחו (רווח)',
-           txt_next: 'הבא (רווח)',
+           txt_inflate: 'נפחו (Enter)',
+           txt_next: 'הבא (Enter)',
            txt_balloon_number: 'בלון: ',
            txt_number_of_pumps: 'ניפוחים: ',
            txt_current_earned: 'שווי הבלון: ₪',
@@ -249,21 +261,25 @@
 
       function manipulationShow(){
         if (experimentGroup == 1)
-            $("#ms-div").show();
+          $("#ms-div").show();
         else
-            $("#non-ms-div").show();
+          $("#non-ms-div").show();
       }
 
       function manipulationHide(){
-        if (experimentGroup == 1)
-            $("#ms-div").hide("slow", "swing");
-        else
-            $("#non-ms-div").hide("slow", "swing");
+        if (experimentGroup == 1) {
+          $("#ms-div").hide("slow", "swing");
+          smoothScrollToTop();
+        } else {
+          $("#non-ms-div").hide("slow", "swing");
+          smoothScrollToTop();
+        }
       }
 
       $("#start").click(function() {
         $("#openness-div").show();
         $("#welcome-div").hide("slow", "swing");
+        smoothScrollToTop();
       });
 
 
@@ -275,6 +291,7 @@
         if (testMode || valid){
             $("#openness-div").hide("slow", "swing");
             $("#tipi-div").show()
+            smoothScrollToTop();
         } else {
             alert("אנא ענו על כל השאלות.")
         }
@@ -282,11 +299,12 @@
 
       $("#tipiBtn").click(function(){
         // Validate the input
-        var valid = $("input[name^='tipi']:checked").length == 10;
+        var valid = $("input[name^='tipi']:checked").length == 8;
 
         if (testMode || valid){
             $("#tipi-div").hide("slow", "swing");
             manipulationShow();
+            smoothScrollToTop();
         } else {
             alert("אנא ענו על כל השאלות.")
         }
@@ -316,7 +334,8 @@
         bartModalShown = true; // flag this so space key will hide it.
         $('#bart-begin-modal').modal({
             show: 'true'
-        });         
+        });
+        smoothScrollToTop();
       });
 
       function endBart(){
@@ -332,6 +351,7 @@
         if (testMode || valid){
             $("#stress-div").hide("slow", "swing");
             $("#fearOfDeath-div").show();
+            smoothScrollToTop();
         } else {
             alert("אנא ענו על כל השאלות.")
         }
@@ -344,6 +364,7 @@
         if (testMode || valid){
             $("#fearOfDeath-div").hide("slow", "swing");
             $("#after-questions").show();
+            smoothScrollToTop();
         } else {
             alert("אנא ענו על כל השאלות.")
         }
@@ -354,7 +375,8 @@
         console.log(bartData);
         console.log("saving...");
         $('#done-div').show();
-        
+        smoothScrollToTop();
+      
         saveToGoogleSheets(function() {
           console.log("saved data to google spreadsheets");
           $("#wait-to-save").html("המידע נשמר!");          
@@ -397,8 +419,8 @@
             
               <!-- Modal content-->
               <div class="modal-content">
-                <div class="modal-body">
-                  <h3>לחץ/י על מקש הרווח כדי להתחיל.</h3>
+                <div class="modal-body" style="text-align: center">
+                  <h3>לחץ/י על מקש Enter כדי להתחיל.</h3>
                 </div>
               </div>
               
@@ -462,14 +484,14 @@
               <p>בחלק הבא של הניסוי מטרתכם היא לנפח בלונים ולצבור כמה שיותר כסף. </p>
               <p>בכל שלב עליכם להחליט האם לנפח את הבלון בעזרת לחיצה על הכפתור ״נפחו״ ובכך להגדיל את שוויו, או לאסוף את הכסף שצברתם עבור בלון זה בעזרת לחיצה על הכפתור ״קחו את הכסף״. </p>
               <p>שימו לב שהבלונים עלולים להתפוצץ בכל רגע החל מהניפוח הראשון ועד למצב שהבלון ממלא את כל המסך. אם הבלון יתפוצץ לא תוכלו לקבל עליו כסף כלל. בכל שלב יצוין על המסך שווי הבלון הנוכחי, מספר הפעמים שניפחתם בלון זה וסך הכסף שנאסף.</p>
-              <p>ניתן להשתמש במקש רווח כדי לנפח את הבלון ובמקש c כדי לאסוף את הכסף.</p>              
+              <p>ניתן להשתמש במקש Enter כדי לנפח את הבלון ובמקש c כדי לאסוף את הכסף.</p>              
                  
                 <button type="button" id="contToBart" class="btn btn-primary">המשך</button>
             </div>
 
             <div id="bart-div" style="display: none;">
                 <!-- load BART here -->
-                <div id="bart" style="align: center"></div>
+                <div id="bart" style="align: center; margin: 0 auto"></div>
             </div>
 
             <div id="stress-div" style="display: none;">
