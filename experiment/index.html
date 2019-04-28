@@ -17,11 +17,17 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
+    <style>
+      p {
+        font-size: 120%;
+      }
+    </style>
+
   <script type="text/javascript">
     //<![CDATA[
     
     // Set this to true to bypass validation and shorten the bart test.
-    var testMode = false; 
+    var testMode = true; 
 
     // When this is true it means we have everything we need to start the experiment.
     var readyToStart = false;
@@ -70,7 +76,9 @@
         "ms2": $("#ms2").val(),
         "non-ms1": $("#non-ms1").val(),
         "non-ms2": $("#non-ms2").val(),
-        "age": $("input[name='age']").val()
+        "age": $("input[name='age']").val(),
+        "gender": $("input[name='gender']").val(),
+        "religion": $("input[name='religion']").val()
       };
 
       // read answers from surveys.
@@ -120,13 +128,13 @@
       }
 
       var questionHtml = 
-          '<div class="row"><h3>' + question + '</h3></div>' + 
-          '<div class="row"> <div class="col-md-4">&nbsp;</div>';
+          '<div class="row"><p class="question">' + question + '</p></div>' + 
+          '<div class="row"> <div class="col-xs-4">&nbsp;</div>';
 
       var answersHtml = '<div class="row">';
       for (var i=0; i<answers.length; i++) {
         var a = answers[i];
-        answersHtml += '<div class="col-md-1"><input type="radio" name="' +name+ '" value="' +a+ '"> ' +a+ ' </div>';
+        answersHtml += '<div class="col-xs-1"><input type="radio" name="' +name+ '" value="' +a+ '"> ' +a+ ' </div>';
       };
 
       return questionHtml + answersHtml + "</div></div>";
@@ -352,7 +360,8 @@
 
         if (testMode || valid){
             $("#stress-div").hide("slow", "swing");
-            $("#fearOfDeath-div").show();
+            //$("#fearOfDeath-div").show();
+            $("#after-questions").show();
             smoothScrollToTop();
         } else {
             alert("אנא ענו על כל השאלות.")
@@ -447,35 +456,43 @@
           </div>
             <form>
             <div id="openness-div" style="display: none;">
-                <h3>סמנו עד כמה אתם מסכימים עם כל אחד מההיגדים הבאים:</h3>
-                <h3>(1 - לא מסכים כלל, 5 - מסכים מאוד)</h3>
+                <p>סמנו עד כמה אתם מסכימים עם כל אחד מההיגדים הבאים:</p>
+                <p>(1 - לא מסכים כלל, 5 - מסכים מאוד)</p>
                 <div id = "openness-div-inner"></div>
                 <button type="button" id="cont1" class="btn btn-primary">המשך</button>
             </div>
 
             <div id="tipi-div" style="display: none;">
-                <h3>סמנו עד כמה אתם מסכימים עם כל אחד מההיגדים הבאים:</h3>
-                <h3>(1 - לא מסכים כלל, 7 - מסכים מאוד)</h3>
+                <p>סמנו עד כמה אתם מסכימים עם כל אחד מההיגדים הבאים:</p>
+                <p>(1 - לא מסכים כלל, 7 - מסכים מאוד)</p>
                 <div id = "tipi-div-inner"></div>
                 <button type="button" id="tipiBtn" class="btn btn-primary">המשך</button>
             </div>
 
 
             <div id="ms-div" style="display: none;">
-                <div class="row"><h2>תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על מותך.</h2></div>
+                <p>השאלות הבאות נועדו להעריך חלקים מסויימים באישיותך. התשובות שלך ייקראו וינותחו.
+                    אנא קרא/י את השאלות הבאות הקשורות למוות והשיב/י עם פסקה לכל אחת מהן.
+                    אנא דמיין/י את המוות שלך בזמן שאת/ה עונה לשאלות.</p>
+
+                <div class="row"><p class="question">תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על מותך.</p></div>
                 <div class="row"><textarea rows="10" cols="100" id="ms1"></textarea></div>
 
-                <div class="row"><h2>תאר/י, באופן ספציפי עד כמה שתוכל/י, מה יקרה לגופך ברגע שתמות/י ולאחר מכן.</h2></div>
+                <div class="row"><p class="question">תאר/י, באופן ספציפי עד כמה שתוכל/י, מה יקרה לגופך ברגע שתמות/י ולאחר מכן.</p></div>
                 <div class="row"><textarea rows="10" cols="100" id="ms2"></textarea></div>
 
                 <button type="button" class="manipulation-continue btn btn-primary">המשך</button>
             </div>
 
             <div id="non-ms-div" style="display: none;">
-                <div class="row"><h2>תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על טיפול אצל רופא השיניים.</h2></div>
+                <p>השאלות הבאות נועדו להעריך חלקים מסויימים באישיותך. התשובות שלך ייקראו וינותחו.
+                    אנא קרא/י את השאלות הבאות הקשורות לטיפול שיניים והשיב/י עם פסקה לכל אחת מהן.
+                    אנא דמיין/י טיפול אצל רופא השיניים בזמן שאת/ה עונה לשאלות.</p>
+
+                <div class="row"><p class="question">תאר/י בקצרה את הרגשות העולים בך כאשר את/ה חושב/ת על טיפול אצל רופא השיניים.</p></div>
                 <div class="row"><textarea rows="10" cols="100" id="non-ms1"></textarea></div>
 
-                <div class="row"><h2>תאר/י, באופן ספציפי עד כמה שתוכל/י, מה יקרה לך בעת טיפול אצל רופא השיניים.</h2></div>
+                <div class="row"><p class="question">תאר/י, באופן ספציפי עד כמה שתוכל/י, מה יקרה לך בעת טיפול אצל רופא השיניים.</p></div>
                 <div class="row"><textarea rows="10" cols="100" id="non-ms2"></textarea></div>
 
                 <button type="button" class="manipulation-continue btn btn-primary">המשך</button>
@@ -497,26 +514,58 @@
             </div>
 
             <div id="stress-div" style="display: none;">
-                <h3>להלן מספר משפטים בהם משתמשים אנשים בדרך כלל לתאר את עצמם.</h3>
-                <h3>קרא/י כל משפט ובחר/י בספרה המתאימה ביותר לתיאור הרגשתך עכשיו, כלומר ברגע זה.</h3>
-                <h3>אל תתעכב/י זמן רב מדי על משפט כלשהו, אלא בחר/י את התשובה הנראית לך כמתארת בצורה הטובה ביותר את רגשותיך הנוכחיים</h3>
+                <p>להלן מספר משפטים בהם משתמשים אנשים בדרך כלל לתאר את עצמם.</p>
+                <p>קרא/י כל משפט ובחר/י בספרה המתאימה ביותר לתיאור הרגשתך עכשיו, כלומר ברגע זה.</p>
+                <p>אל תתעכב/י זמן רב מדי על משפט כלשהו, אלא בחר/י את התשובה הנראית לך כמתארת בצורה הטובה ביותר את רגשותיך הנוכחיים</p>
+                <p>(1 - לא מסכים בכלל, 5 - מסכים מאוד)</p>
                 <div id="stress-div-inner"></div>
                 <button type="button" id="stressBtn" class="btn btn-primary">המשך</button>
             </div>
 
+            <!--
+
             <div id="fearOfDeath-div" style="display: none;">
-                <h3>לפניך 15 משפטים קצרים המתארים התייחסויות שונות ורגשות שונים כלפי המוות. אנא קרא/י את המשפטים וסמן/י לגבי כל משפט את מידת נכונותו לגביך</h3>
+                <p>לפניך 15 משפטים קצרים המתארים התייחסויות שונות ורגשות שונים כלפי המוות. אנא קרא/י את המשפטים וסמן/י לגבי כל משפט את מידת נכונותו לגביך</p>
                 <div id="fearOfDeath-div-inner"></div>
                 <button type="button" id="fearOfDeathBtn" class="btn btn-primary">המשך</button>
             </div>
 
-            <div id="after-questions" style="display: none;">
-                <h4>אנא מלאו את הפרטים הבאים</h4>
-                <h3>גיל: </h3> <input type="text" name="age"/>
+            -->
 
-                <div id="demo-qs-div"></div>
+            <div id="after-questions" style="display: none;">
+                <p>אנא מלאו את הפרטים הבאים</p>
+                <div class="row">
+
+                  <div class="col-xs-7">&nbsp;</div>
+                  <input class="col-xs-3" type="text" name="age"/>
+                  <p class="col-xs-2 question">גיל: </p> 
+                </div>
+
+                <div class="row">
+                  <div class="col-xs-7">&nbsp;</div>
+                  <div class="col-xs-3">
+                    <input type="radio" name="gender" value="male"> זכר &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="radio" name="gender" value="female"> נקבה
+                  </div>
+                    <p class="col-xs-2 question">מין: </p> 
+                </div>
+
+                <div class="row">
+                  <div class="col-xs-7">&nbsp;</div>
+                    <div class="col-xs-3">
+                    <input type="radio" name="religion" value="religious"> דתי &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="radio" name="religion" value="traditional"> מסורתי &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="radio" name="religion" value="notReligious"> חילוני
+                    </div>
+                    <p class="col-xs-2 question">הגדרה דתית: </p> 
+                </div>
+                
+
+                <!--<div id="demo-qs-div"></div>-->
+                <div class="row">
 
                 <button type="button" id="cont3" class="btn btn-primary">המשך</button>
+                </div>
             </div>
 
             <div id="done-div" style="display: none;">
