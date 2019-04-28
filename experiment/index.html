@@ -395,7 +395,8 @@
       }                          
 
       $("#cont3").click(function(){
-        var valid = $("input[name^='demographics']:checked").length == 2 && 
+        var valid = $("input[name^='gender']:checked").length == 1 && 
+            $("input[name^='religion']:checked").length == 1 && 
             $("input[name='age']").val().length > 0;
         if (testMode || valid){
           save();
