@@ -47,6 +47,12 @@
     // Data collected from surveys. first question names are added as keys and later the data comes.
     var surveyResults = {};
 
+    // BART data collecting.
+    var balloonCount = 45;
+    var explodeCounter = { blue: 0, yellow: 0, red: 0 };
+    var cashinCounter = { blue: 0, yellow: 0, red: 0 };
+    var earnedSum = { blue: 0, yellow: 0, red: 0 };
+
     // Select exeperiment group at startup:
     // Retrieve group column from spreadhseet.
     var urlExperimentGroupColumn = "https://sheets.googleapis.com/v4/spreadsheets/" 
@@ -98,6 +104,9 @@
         "bart-yellow-cashin": cashinCounter.yellow,
         "bart-red-cashin": cashinCounter.red,
         "bart-balloon-count": balloonCount,
+        "bart-yellow-earned": earnedSum.yellow,
+        "bart-red-earned": earnedSum.red,
+        "bart-blue-earned": earnedSum.blue
       }
       Object.assign(data, bart);
 
@@ -218,9 +227,6 @@
       $("#demo-qs-div").append(generateSurvey("demographics"));
 
       // Setup BART
-      balloonCount = 45;
-      explodeCounter = { blue: 0, yellow: 0, red: 0 };
-      cashinCounter = { blue: 0, yellow: 0, red: 0 };
 
       var bOpts = {
         min_pump: 2, 
@@ -233,15 +239,16 @@
         oncashin: function() { 
           this.end_time = $.now(); 
           cashinCounter[this.color] += 1;
+          earnedSum[this.color] += this.pumps * this.earnings
         }
       };
 
       // create a BART
       $("#bart").bart(
         {b: [
-          {b: (testMode ? 1 : balloonCount/3), o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
-          {b: (testMode ? 0 : balloonCount/3), o: $.extend({color: 'red', popprob: 128 }, bOpts)},
-          {b: (testMode ? 0 : balloonCount/3), o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
+          {b: (testMode ? 3 : balloonCount/3), o: $.extend({color: 'blue', popprob: 8 }, bOpts)},
+          {b: (testMode ? 3 : balloonCount/3), o: $.extend({color: 'red', popprob: 128 }, bOpts)},
+          {b: (testMode ? 3 : balloonCount/3), o: $.extend({color: 'yellow', popprob: 32}, bOpts)}
         ],
          s: {
            txt_cashin: 'קחו כסף (c)',
